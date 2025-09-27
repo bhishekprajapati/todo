@@ -16,6 +16,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/globals/logo";
+import { withBase } from "@/utils/auth";
+import config from "@/config";
 
 export function SignUpForm({
   className,
@@ -49,7 +51,7 @@ export function SignUpForm({
         },
       });
       if (error) throw error;
-      router.push("/auth/sign-up-success");
+      router.push(withBase(config.auth.pages["signup-success"].name));
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
@@ -116,8 +118,11 @@ export function SignUpForm({
             </div>
             <div className="mt-4 text-center text-sm">
               Already have an account?{" "}
-              <Link href="/auth/login" className="underline underline-offset-4">
-                Login
+              <Link
+                href={withBase(config.auth.pages.signin.name)}
+                className="underline underline-offset-4"
+              >
+                Signin
               </Link>
             </div>
           </form>

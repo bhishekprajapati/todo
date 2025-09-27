@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useState } from "react";
+import { withBase } from "@/utils/auth";
+import config from "@/config";
 
-export function ForgotPasswordForm({
+export function ResetPasswordForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -33,7 +35,7 @@ export function ForgotPasswordForm({
     try {
       // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${window.location.origin}${withBase(config.auth.pages["update-password"].name)}`,
       });
       if (error) throw error;
       setSuccess(true);
@@ -90,10 +92,10 @@ export function ForgotPasswordForm({
               <div className="mt-4 text-center text-sm">
                 Already have an account?{" "}
                 <Link
-                  href="/auth/login"
+                  href={withBase(config.auth.pages.signin.name)}
                   className="underline underline-offset-4"
                 >
-                  Login
+                  Signin
                 </Link>
               </div>
             </form>

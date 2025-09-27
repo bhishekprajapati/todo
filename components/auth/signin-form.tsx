@@ -41,7 +41,6 @@ export function SignInForm({
         password,
       });
       if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
       router.push("/app");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -59,7 +58,7 @@ export function SignInForm({
               <span className="inline-block bg-gray-900 p-2 rounded-xl">
                 <Logo />
               </span>
-              Login
+              Signin
             </div>
           </CardTitle>
           <CardDescription>
@@ -100,7 +99,7 @@ export function SignInForm({
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading ? "Signing in..." : "Login"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

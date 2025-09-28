@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { DM_Sans, Inter } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
@@ -13,9 +13,17 @@ export const metadata: Metadata = {
   title: "Simple Todo App",
 };
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const dmsans = DM_Sans({
+  variable: "--font-dm-sans",
   display: "swap",
+  preload: true,
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  display: "swap",
+  preload: true,
   subsets: ["latin"],
 });
 
@@ -26,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} antialiased`}>
+      <body className={`${dmsans.className} ${inter.className} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

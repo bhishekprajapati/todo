@@ -1,0 +1,92 @@
+"use client";
+
+import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
+import { TaskCard } from "./task-card";
+import TaskCardLoader from "./task-card-loader";
+import { CreateTaskButton } from "./buttons/create-task";
+import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
+
+function RenderTaskActions(props: { opts: TUseTasksOptions }) {
+  const { opts } = props;
+
+  return (
+    <div className="py-4">
+      <CreateTaskButton />
+    </div>
+  );
+}
+
+function TaskView({
+  className,
+  children,
+  ...restProps
+}: React.ComponentProps<"ul">) {
+  return (
+    <ul
+      className={cn(
+        "grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+        className,
+      )}
+      {...restProps}
+    >
+      {children}
+    </ul>
+  );
+}
+
+function TaskViewItem({ children, ...restProps }: React.ComponentProps<"li">) {
+  return <li {...restProps}>{children}</li>;
+}
+
+export function UserTasks() {
+  const [opts] = useState<TUseTasksOptions>({
+    sort: ["expires_at", "desc"],
+  });
+
+  const { query } = useTasks(opts);
+
+  if (query.error) {
+    return "failed to load tasks";
+  }
+
+  if (query.isFetching) {
+    const arr = new Array(10).fill(0);
+
+    return (
+      <>
+        <RenderTaskActions opts={opts} />
+        <TaskView>
+          {arr.map((_, idx) => (
+            <TaskViewItem key={idx}>
+              <TaskCardLoader />
+            </TaskViewItem>
+          ))}
+        </TaskView>
+      </>
+    );
+  }
+
+  if (query.data) {
+    const tasks = query.data.data;
+
+    if (!tasks.length) {
+      return "no tasks";
+    }
+
+    return (
+      <>
+        <RenderTaskActions opts={opts} />
+        <TaskView>
+          {tasks.map((task) => (
+            <TaskViewItem key={task.id}>
+              <TaskCard task={task} />
+            </TaskViewItem>
+          ))}
+        </TaskView>
+      </>
+    );
+  }
+
+  return null;
+}

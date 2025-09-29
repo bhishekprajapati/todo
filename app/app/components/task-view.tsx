@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,23 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
-import { cn } from "@/lib/utils";
-import { CreateTaskButton } from "./buttons/create-task";
-import { TaskCard } from "./task-card";
-import TaskCardLoader from "./task-card-loader";
-
-import {
-  ArrowDownZa,
-  ArrowUpDown,
-  ArrowUpZa,
-  CalendarOff,
-  Check,
-  Timer,
-  X,
-} from "lucide-react";
-import { useMemo, useState } from "react";
-import { omit } from "remeda";
 import {
   Select,
   SelectContent,
@@ -41,6 +25,25 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
+import { cn } from "@/lib/utils";
+import { CreateTaskButton } from "./buttons/create-task";
+import { TaskCard } from "./task-card";
+import TaskCardLoader from "./task-card-loader";
+
+import {
+  ArrowDownZa,
+  ArrowUpDown,
+  ArrowUpZa,
+  CalendarOff,
+  Check,
+  SmilePlus,
+  Timer,
+  TriangleAlert,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { omit } from "remeda";
 
 type TTaskSearchInput = {
   onSearch?: (query: string) => void;
@@ -119,6 +122,24 @@ function TaskSortButton(props: TTaskSortButton) {
   );
 }
 
+function EmptyTaskList() {
+  return (
+    <div className="border border-border rounded-xl p-16 bg-card text-card-foreground text-center">
+      <SmilePlus size={36} className="text-primary inline-block mb-4" />
+      <h2 className="font-medium text-lg">Let&apos;s add your first task</h2>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div className="border border-red-400/15 p-16 rounded-xl text-center text-red-400">
+      <TriangleAlert size={36} className="inline-block mb-4" />
+      <h2 className="font-medium text-lg">{message}</h2>
+    </div>
+  );
+}
+
 function TaskView({
   className,
   children,
@@ -182,7 +203,7 @@ export function UserTasks() {
     <>
       <div className="py-4 flex items-center gap-4 mb-4">
         <TaskSearchInput onSearch={handleTaskSearch} />
-        <span className="ms-auto" />
+        <span className="me-auto" />
         {opts.filter?.status && (
           <Tooltip>
             <TooltipTrigger asChild>
@@ -248,7 +269,7 @@ export function UserTasks() {
       </div>
 
       {query.error ? (
-        <>Failed to load tasks</>
+        <ErrorState message={query.error.message} />
       ) : query.data ? (
         query.data.data.length ? (
           <TaskView>
@@ -259,7 +280,7 @@ export function UserTasks() {
             ))}
           </TaskView>
         ) : (
-          "not tasks"
+          <EmptyTaskList />
         )
       ) : (
         <TaskView>

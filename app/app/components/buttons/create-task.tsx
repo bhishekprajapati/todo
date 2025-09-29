@@ -38,6 +38,7 @@ const createSchema = z.object({
   }),
   notes: z.coerce.string().trim(),
   expires_at: z.date({ error: "Setting deadline is required" }),
+  completed_at: z.union([z.date(), z.null()]),
 });
 
 const createSchemaResolver = zodResolver(createSchema);
@@ -52,6 +53,7 @@ export function CreateTaskButton() {
     defaultValues: {
       title: "",
       notes: "",
+      completed_at: null,
     },
   });
 
@@ -103,8 +105,9 @@ export function CreateTaskButton() {
     <>
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogTrigger asChild>
-          <Button size="icon" className="scale-75">
-            <Plus size={16} className="text-black" />
+          <Button variant="secondary" size="lg" className="cursor-pointer">
+            <Plus size={16} />
+            New Task
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] pt-4">

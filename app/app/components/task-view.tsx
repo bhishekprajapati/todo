@@ -1,17 +1,19 @@
 "use client";
 
 import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
+import { cn } from "@/lib/utils";
+import { CreateTaskButton } from "./buttons/create-task";
 import { TaskCard } from "./task-card";
 import TaskCardLoader from "./task-card-loader";
-import { CreateTaskButton } from "./buttons/create-task";
-import { useMemo, useState } from "react";
-import { cn } from "@/lib/utils";
+
+import { useState } from "react";
 
 function RenderTaskActions(props: { opts: TUseTasksOptions }) {
-  const { opts } = props;
+  const {} = props;
 
   return (
-    <div className="py-4">
+    <div className="py-4 flex items-center">
+      <span className="ms-auto" />
       <CreateTaskButton />
     </div>
   );
@@ -25,7 +27,7 @@ function TaskView({
   return (
     <ul
       className={cn(
-        "grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4",
+        "grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6",
         className,
       )}
       {...restProps}
@@ -36,7 +38,11 @@ function TaskView({
 }
 
 function TaskViewItem({ children, ...restProps }: React.ComponentProps<"li">) {
-  return <li {...restProps}>{children}</li>;
+  return (
+    <li className="shadow-2xl" {...restProps}>
+      {children}
+    </li>
+  );
 }
 
 export function UserTasks() {
@@ -48,23 +54,6 @@ export function UserTasks() {
 
   if (query.error) {
     return "failed to load tasks";
-  }
-
-  if (query.isFetching) {
-    const arr = new Array(10).fill(0);
-
-    return (
-      <>
-        <RenderTaskActions opts={opts} />
-        <TaskView>
-          {arr.map((_, idx) => (
-            <TaskViewItem key={idx}>
-              <TaskCardLoader />
-            </TaskViewItem>
-          ))}
-        </TaskView>
-      </>
-    );
   }
 
   if (query.data) {
@@ -88,5 +77,18 @@ export function UserTasks() {
     );
   }
 
-  return null;
+  const arr = new Array(10).fill(0);
+
+  return (
+    <>
+      <RenderTaskActions opts={opts} />
+      <TaskView>
+        {arr.map((_, idx) => (
+          <TaskViewItem key={idx}>
+            <TaskCardLoader />
+          </TaskViewItem>
+        ))}
+      </TaskView>
+    </>
+  );
 }

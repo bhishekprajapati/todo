@@ -11,7 +11,7 @@ export default function TaskCardLoader() {
         </div>
       </div>
       <div className="">
-        <Skeleton className="p-4 w-24 rounded-full" />
+        <Skeleton className="p-3 w-20 rounded-full" />
       </div>
     </div>
   );

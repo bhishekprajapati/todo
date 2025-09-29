@@ -2,41 +2,59 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import { TResolvedTask } from "@/hooks/queries/use-tasks";
+import { cn } from "@/lib/utils";
+
+import { cva, VariantProps } from "class-variance-authority";
 import clsx from "clsx";
-import { Calendar } from "lucide-react";
+import {
+  Calendar,
+  CalendarCheck,
+  CalendarOff,
+  LucideIcon,
+  Pencil,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+import { DeleteTaskButton } from "./buttons/delete-button";
+import { useDeleteTask } from "@/hooks/mutations/use-delete-task";
+import { useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import { useUpdateTask } from "@/hooks/mutations/use-update-task";
+import { Button } from "@/components/ui/button";
 
-function isOverDue(deadline: Date): boolean {
-  const now = new Date();
-  const diffMs = deadline.getTime() - now.getTime();
-  return diffMs <= 0;
-}
+const datetimeTagVariants = cva(
+  "inline-flex items-center gap-[.5em] px-[.75em] py-[.5em] rounded-full border",
+  {
+    variants: {
+      size: {
+        sm: "text-sm",
+        xs: "text-xs",
+        xxs: "text-[.625rem]",
+      },
+      colors: {
+        disabled: "dark:border-zinc-400/25 dark:text-zinc-300 dark:bg-zinc-950",
+        urgent: "border-red-400/25 bg-red-400/10",
+        warning: "border-yellow-400/25 bg-yellow-400/10",
+        default: "border-blue-400/25 bg-blue-400/10",
+        success: "border-green-400/10 bg-green-400/5",
+      },
+    },
+    defaultVariants: {
+      colors: "default",
+      size: "sm",
+    },
+  },
+);
 
-function formatRelative(deadline: Date): string {
-  const now = new Date();
-  const diffMs = deadline.getTime() - now.getTime();
+type TDatetimeTagProps = {
+  date: Date;
+  Icon: LucideIcon;
+  format: (date: Date) => string;
+} & VariantProps<typeof datetimeTagVariants> &
+  React.ComponentProps<"span">;
 
-  if (diffMs <= 0) return "Overdue";
-
-  const mins = Math.floor(diffMs / 1000 / 60);
-  const hours = Math.floor(mins / 60);
-  const days = Math.floor(hours / 24);
-  const weeks = Math.floor(days / 7);
-  const months = Math.floor(days / 30);
-  const years = Math.floor(days / 365);
-
-  if (years > 0) return `In ${years} year${years > 1 ? "s" : ""}`;
-  if (months > 0) return `In ${months} month${months > 1 ? "s" : ""}`;
-  if (weeks > 0) return `In ${weeks} week${weeks > 1 ? "s" : ""}`;
-  if (days > 0) return `In ${days} day${days > 1 ? "s" : ""}`;
-  if (hours > 0) return `In ${hours} hour${hours > 1 ? "s" : ""}`;
-
-  return `In ${mins} minute${mins > 1 ? "s" : ""}`;
-}
-
-function RenderDeadlineTag(props: { date: Date }) {
-  const { date } = props;
+function DatetimeTag(props: TDatetimeTagProps) {
+  const { date, colors, Icon, size, className, format, ...restProps } = props;
   const [datetime, setDateTime] = useState(date);
   const [label, setLabel] = useState("");
 
@@ -45,47 +63,161 @@ function RenderDeadlineTag(props: { date: Date }) {
   }, [date]);
 
   useEffect(() => {
-    setLabel(formatRelative(datetime));
-  }, [datetime]);
+    setLabel(format(datetime));
+  }, [datetime, format]);
 
   return label ? (
-    <span className="inline-flex items-center gap-[.5em] text-sm dark:text-zinc-300 dark:bg-zinc-950 px-[.75em] py-[.5em] rounded-full">
-      <Calendar className="w-[1em] h-[1em]" />
+    <span
+      className={datetimeTagVariants({
+        className:
+          "whitespace-nowrap overflow-x-hidden line-clamp-1" + " " + className,
+        colors,
+        size,
+      })}
+      {...restProps}
+    >
+      <Icon className="w-[1em] h-[1em]" />
       {label}
     </span>
   ) : null;
 }
 
 type TTaskCardProps = {
-  task: Task;
+  task: TResolvedTask;
 };
 
 export function TaskCard(props: TTaskCardProps) {
   const { task } = props;
-  const isDisabled = isOverDue(task.expires_at);
+  const { status } = task;
+
+  const isCompleted = status.status === "completed";
+  const isOverdue = status.status === "overdue";
+
+  const queryClient = useQueryClient();
+  const { mutation: deleteMutation } = useDeleteTask();
+  const { mutation: checkMutation } = useUpdateTask();
+
+  const refetchTasks = () =>
+    queryClient.refetchQueries({ queryKey: ["tasks"] });
+
+  function handleTaskDelete() {
+    deleteMutation.mutateAsync(task.id, {
+      onError(err) {
+        toast.error(err.message);
+      },
+      onSuccess() {
+        return refetchTasks();
+      },
+    });
+  }
+
+  function handleCheckChange(isChecked: boolean) {
+    checkMutation.mutateAsync(
+      {
+        id: task.id,
+        payload: {
+          completed_at: isChecked ? new Date() : null,
+        },
+      },
+      {
+        onSuccess() {
+          return refetchTasks();
+        },
+        onError(err) {
+          toast.error(err.message);
+        },
+      },
+    );
+  }
 
   return (
-    <form className={clsx("select-none", { "opacity-50": isDisabled })}>
+    <div
+      className={clsx("select-none", {
+        "opacity-50 cursor-not-allowed": isOverdue,
+      })}
+    >
       <Card className="p-2.5">
         <CardContent className="p-0">
           <div className="flex items-start gap-4 mb-4">
-            <Checkbox color="success" disabled={isDisabled} />
+            <Checkbox
+              defaultChecked={isCompleted}
+              className={cn("mt-1", {
+                "animate-pulse": checkMutation.isPending,
+              })}
+              color="success"
+              disabled={isOverdue || checkMutation.isPending}
+              onCheckedChange={handleCheckChange}
+            />
 
             <div className="flex-1">
-              <h3 className="font-medium font-heading mb-4">{task.title}</h3>
-              <Textarea
-                rows={10}
-                className="resize-none w-full overflow-y-auto !bg-transparent !border-none !outline-none !p-0 text-sm !ring-0"
-                placeholder="notes..."
-                disabled={isDisabled}
-              />
+              <h3
+                className={cn("text-lg font-medium font-heading mb-4", {
+                  "line-through text-foreground/50": !!task.completed_at,
+                })}
+              >
+                {task.title}
+              </h3>
+              <p
+                className={cn("text-[1rem] min-h-24", {
+                  "line-through text-foreground/50": !!task.completed_at,
+                })}
+              >
+                {task.notes}
+              </p>
             </div>
+
+            <DeleteTaskButton
+              isLoading={deleteMutation.isPending}
+              onClick={handleTaskDelete}
+              disabled={deleteMutation.isPending}
+            />
           </div>
-          <div>
-            <RenderDeadlineTag date={task.expires_at} />
+
+          <div className="flex items-center justify-between">
+            {isCompleted && task.completed_at && (
+              <DatetimeTag
+                Icon={CalendarCheck}
+                date={task.completed_at}
+                format={() => status.label}
+                colors="success"
+                size="xs"
+              />
+            )}
+
+            {isOverdue && (
+              <DatetimeTag
+                Icon={CalendarOff}
+                date={task.expires_at}
+                format={() => status.label}
+                colors="disabled"
+                size="xs"
+              />
+            )}
+
+            {status.status === "pending" && (
+              <>
+                <DatetimeTag
+                  Icon={Calendar}
+                  date={task.expires_at}
+                  format={() => status.label}
+                  colors={
+                    status.isDueToday
+                      ? "urgent"
+                      : status.isDueThisWeek
+                        ? "warning"
+                        : "default"
+                  }
+                  size="xs"
+                />
+
+                <Button variant="ghost" size="icon" disabled>
+                  <Pencil size={12} />
+                </Button>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
-    </form>
+    </div>
   );
 }

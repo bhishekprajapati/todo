@@ -1,31 +1,9 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
-import { cn } from "@/lib/utils";
-import { CreateTaskButton } from "./buttons/create-task";
-import { TaskCard } from "./task-card";
-import TaskCardLoader from "./task-card-loader";
-
-import { useMemo, useState } from "react";
-import { omit, sort } from "remeda";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowDownAz,
-  ArrowDownZa,
-  ArrowUpAz,
-  ArrowUpDown,
-  ArrowUpZa,
-} from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -33,6 +11,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { TUseTasksOptions, useTasks } from "@/hooks/queries/use-tasks";
+import { cn } from "@/lib/utils";
+import { CreateTaskButton } from "./buttons/create-task";
+import { TaskCard } from "./task-card";
+import TaskCardLoader from "./task-card-loader";
+
+import { ArrowDownZa, ArrowUpDown, ArrowUpZa } from "lucide-react";
+import { useMemo, useState } from "react";
+import { omit } from "remeda";
 
 type TTaskSearchInput = {
   onSearch?: (query: string) => void;

@@ -66,6 +66,11 @@ export type TUseTasksOptions = {
     title?: {
       search: string;
     };
+    status?: "completed" | "overdue" | "pending";
+    range?: {
+      from: Date;
+      to: Date;
+    };
   };
   sort?: [
     keyof Pick<
@@ -98,6 +103,27 @@ export function useTasks(opts: TUseTasksOptions = {}) {
       if (filter?.title?.search) {
         // TODO: enable text search
         query.ilike("title", `%${filter.title.search}%`);
+      }
+
+      if (filter?.status) {
+        switch (filter.status) {
+          case "completed": {
+            query.not("completed_at", "is", "null");
+            break;
+          }
+
+          case "overdue": {
+            query.lt("expires_at", new Date().toISOString());
+            break;
+          }
+
+          case "pending": {
+            query
+              .is("completed_at", null)
+              .gte("expires_at", new Date().toISOString());
+            break;
+          }
+        }
       }
 
       const { data, statusText, error, count } = await query;

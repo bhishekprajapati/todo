@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,9 +17,30 @@ import { CreateTaskButton } from "./buttons/create-task";
 import { TaskCard } from "./task-card";
 import TaskCardLoader from "./task-card-loader";
 
-import { ArrowDownZa, ArrowUpDown, ArrowUpZa } from "lucide-react";
+import {
+  ArrowDownZa,
+  ArrowUpDown,
+  ArrowUpZa,
+  CalendarOff,
+  Check,
+  Timer,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { omit } from "remeda";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type TTaskSearchInput = {
   onSearch?: (query: string) => void;
@@ -129,7 +149,6 @@ export function UserTasks() {
   const [opts, setOpts] = useState<TUseTasksOptions>({
     sort: ["expires_at", "asc"],
   });
-
   const { query } = useTasks(opts);
 
   function handleTaskSearch(query: string) {
@@ -164,13 +183,73 @@ export function UserTasks() {
       <div className="py-4 flex items-center gap-4 mb-4">
         <TaskSearchInput onSearch={handleTaskSearch} />
         <span className="ms-auto" />
+        {opts.filter?.status && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() =>
+                  setOpts(({ filter, sort }) => ({
+                    sort,
+                    filter: omit(filter ?? {}, ["status"]),
+                  }))
+                }
+              >
+                <X size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Clear status filter</TooltipContent>
+          </Tooltip>
+        )}
+        <Select
+          key={opts.filter?.status}
+          value={opts.filter?.status}
+          onValueChange={(status) => {
+            if (
+              status === "completed" ||
+              status === "overdue" ||
+              status === "pending"
+            ) {
+              setOpts(({ filter, sort }) => ({
+                sort,
+                filter: { ...omit(filter ?? {}, ["status"]), status },
+              }));
+
+              return;
+            }
+
+            setOpts(({ filter, sort }) => ({
+              sort,
+              filter:
+                filter === undefined ? undefined : omit(filter, ["status"]),
+            }));
+          }}
+        >
+          <SelectTrigger className="w-[10rem]">
+            <SelectValue placeholder="Filter by status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              <SelectItem value="completed">
+                <Check size={16} /> Completed
+              </SelectItem>
+              <SelectItem value="overdue">
+                <CalendarOff size={16} /> Overdue
+              </SelectItem>
+              <SelectItem value="pending">
+                <Timer size={16} /> Pending
+              </SelectItem>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
         <TaskSortButton sort={opts.sort} onChange={handleTaskSortChange} />
         <CreateTaskButton />
       </div>
 
-      {query.error && "failed to load tasks"}
-
-      {query.data ? (
+      {query.error ? (
+        <>Failed to load tasks</>
+      ) : query.data ? (
         query.data.data.length ? (
           <TaskView>
             {query.data.data.map((task) => (

@@ -23,6 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateTask } from "@/hooks/mutations/use-create-task";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,7 @@ const createSchemaResolver = zodResolver(createSchema);
 export function CreateTaskButton() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const form = useForm({
     mode: "all",
@@ -105,9 +107,13 @@ export function CreateTaskButton() {
     <>
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogTrigger asChild>
-          <Button variant="secondary" size="lg" className="cursor-pointer">
+          <Button
+            variant="secondary"
+            size={isMobile ? "icon" : "lg"}
+            className="cursor-pointer"
+          >
             <Plus size={16} />
-            New Task
+            {!isMobile && <>New Task</>}
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px] pt-4">

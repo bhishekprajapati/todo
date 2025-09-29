@@ -62,6 +62,11 @@ function resolveTaskStatus(task: Task) {
 }
 
 export type TUseTasksOptions = {
+  filter?: {
+    title?: {
+      search: string;
+    };
+  };
   sort?: [
     keyof Pick<
       Task,
@@ -82,12 +87,17 @@ export function useTasks(opts: TUseTasksOptions = {}) {
     queryKey: ["tasks", opts, client],
 
     queryFn: async () => {
-      const { sort } = opts;
+      const { sort, filter } = opts;
       const query = client.from("tasks").select("*");
 
       if (sort) {
         const [col, order] = sort;
         query.order(col, { ascending: order === "asc" });
+      }
+
+      if (filter?.title?.search) {
+        // TODO: enable text search
+        query.ilike("title", `%${filter.title.search}%`);
       }
 
       const { data, statusText, error, count } = await query;

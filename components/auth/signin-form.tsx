@@ -16,8 +16,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Logo from "@/components/globals/logo";
-import { withBase } from "@/utils/auth";
-import config from "@/config";
 
 export function SignInForm({
   className,
@@ -83,7 +81,7 @@ export function SignInForm({
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
                   <Link
-                    href={withBase(config.auth.pages["reset-password"].name)}
+                    href="/auth/reset-password"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
@@ -105,7 +103,7 @@ export function SignInForm({
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link
-                href={withBase(config.auth.pages.signup.name)}
+                href="/auth/signup"
                 className="underline underline-offset-4"
               >
                 Sign up

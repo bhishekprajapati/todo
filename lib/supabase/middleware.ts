@@ -1,5 +1,3 @@
-import config from "@/config";
-import { withBase } from "@/utils/auth";
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -45,13 +43,12 @@ export async function updateSession(request: NextRequest) {
   if (
     request.nextUrl.pathname !== "/" &&
     !user &&
-    !request.nextUrl.pathname.startsWith(
-      withBase(config.auth.pages.signin.name),
-    )
+    !request.nextUrl.pathname.startsWith("/auth/signin") &&
+    !request.nextUrl.pathname.startsWith("/auth")
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
-    url.pathname = withBase(config.auth.pages.signin.name);
+    url.pathname = "/auth/signin";
     return NextResponse.redirect(url);
   }
 
